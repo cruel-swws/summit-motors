@@ -1065,21 +1065,50 @@
                 }
             });
 
-            finForm.addEventListener('submit', (e) => {
+            finForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
 
-                finForm.innerHTML = `
-                    <div class="flex flex-col items-center justify-center py-12 md:py-20 text-center h-full animate-[fadeIn_0.5s_ease-out]">
-                        <div class="w-24 h-24 bg-green-50 rounded-full flex items-center justify-center mb-6 shadow-inner border border-green-100">
-                            <svg class="w-12 h-12 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                        </div>
-                        <h3 class="text-3xl font-black text-[#0f172a] mb-3 tracking-tight">Application Securely Submitted</h3>
-                        <p class="text-gray-500 max-w-md mx-auto mb-10 leading-relaxed text-sm md:text-base">Your data is safe with our 256-bit encryption. Our finance team will review your application and contact you shortly with approval details.</p>
-                        <button onclick="event.preventDefault(); closeFinancingModal()" class="bg-[#0f172a] text-white px-8 md:px-12 py-4 rounded-xl font-extrabold shadow-lg hover:bg-[#dc2626] transition-all transform hover:-translate-y-1">Return to Showcase</button>
-                    </div>
-                `;
+                // ⚙️ BACKEND SETUP: 
+                // Paste your Formspree URL or Google Apps Script Webhook URL below
+                // Example Formspree: 'https://formspree.io/f/xoqreba'
+                const WEBHOOK_URL = 'https://formspree.io/f/mgopzajg';
 
-                localStorage.removeItem('summitFinancingData');
+                const submitBtn = finForm.querySelector('button[type="submit"]');
+                const originalBtnText = submitBtn.innerHTML;
+
+                try {
+                    if (WEBHOOK_URL) {
+                        submitBtn.innerHTML = '<svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline flex-shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Processing securely...';
+                        submitBtn.disabled = true;
+
+                        const formData = new FormData(finForm);
+                        const response = await fetch(WEBHOOK_URL, {
+                            method: 'POST',
+                            body: formData,
+                            headers: { 'Accept': 'application/json' }
+                        });
+
+                        if (!response.ok) throw new Error('Network response from Webhook was not ok');
+                    }
+
+                    finForm.innerHTML = `
+                        <div class="flex flex-col items-center justify-center py-12 md:py-20 text-center h-full animate-[fadeIn_0.5s_ease-out]">
+                            <div class="w-24 h-24 bg-green-50 rounded-full flex items-center justify-center mb-6 shadow-inner border border-green-100">
+                                <svg class="w-12 h-12 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                            </div>
+                            <h3 class="text-3xl font-black text-[#0f172a] mb-3 tracking-tight">Application Securely Submitted</h3>
+                            <p class="text-gray-500 max-w-md mx-auto mb-10 leading-relaxed text-sm md:text-base">Your data is safe with our 256-bit encryption. Our finance team will review your application and contact you shortly with approval details.</p>
+                            <button onclick="event.preventDefault(); closeFinancingModal()" class="bg-[#0f172a] text-white px-8 md:px-12 py-4 rounded-xl font-extrabold shadow-lg hover:bg-[#dc2626] transition-all transform hover:-translate-y-1">Return to Showcase</button>
+                        </div>
+                    `;
+
+                    localStorage.removeItem('summitFinancingData');
+                } catch (error) {
+                    console.error('Submission error:', error);
+                    alert("Houve um erro conectando ao banco de dados. Por favor tente novamente.");
+                    submitBtn.innerHTML = originalBtnText;
+                    submitBtn.disabled = false;
+                }
             });
         }
 

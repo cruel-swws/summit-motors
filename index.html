@@ -1397,6 +1397,45 @@
                 observer.observe(card);
             });
         });
+
+        // Preload videos in background to make them load instantly
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                cars.forEach(car => {
+                    if (car.video) {
+                        const link = document.createElement('link');
+                        link.rel = 'preload';
+                        link.as = 'video';
+                        link.href = car.video;
+                        document.head.appendChild(link);
+                    }
+                });
+            }, 1000);
+        });
+
+        // Mobile Swipe Support for Carousel
+        const carouselTrack = document.getElementById('carousel-track');
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        carouselTrack.addEventListener('touchstart', e => {
+            touchStartX = e.changedTouches[0].screenX;
+        }, {passive: true});
+
+        carouselTrack.addEventListener('touchend', e => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        }, {passive: true});
+
+        function handleSwipe() {
+            const minSwipeDistance = 50;
+            if (touchEndX < touchStartX - minSwipeDistance) {
+                nextCar(); // Swipe left -> next
+            }
+            if (touchEndX > touchStartX + minSwipeDistance) {
+                prevCar(); // Swipe right -> prev
+            }
+        }
     </script>
 </body>
 
